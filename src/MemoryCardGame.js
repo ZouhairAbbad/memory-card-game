@@ -4,11 +4,19 @@ import { Button, Card, Row, Col, Select, Layout, List } from 'antd';
 const { Header, Content, Footer } = Layout;
 const { Option } = Select;
 
+// Liste des 16 couleurs
+const COLORS = [
+  '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+  '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+  '#008000', '#000080', '#808000', '#FFC0CB',
+  '#A52A2A', '#8B4513', '#808080', '#000000',
+];
+
 function MemoryCardGame() {
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
   const [matchedCards, setMatchedCards] = useState([]);
-  const [gameMode, setGameMode] = useState(4);
+  const [gameMode, setGameMode] = useState(4); // Mode par défaut : 4 cartes
   const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('gameHistory')) || []);
   const [background, setBackground] = useState('#f0f2f5');
 
@@ -17,9 +25,12 @@ function MemoryCardGame() {
   }, [gameMode]);
 
   function initializeGame() {
-    const pairs = Array.from({ length: gameMode / 2 }, (_, i) => i + 1);
-    const shuffled = [...pairs, ...pairs].sort(() => Math.random() - 0.5);
-    setCards(shuffled.map((value, id) => ({ id, value, flipped: false })));
+    // Sélectionner le bon nombre de paires de couleurs en fonction du mode
+    const colorPairs = COLORS.slice(0, gameMode / 2);
+    const shuffled = [...colorPairs, ...colorPairs]
+      .map((color, id) => ({ id, color, flipped: false }))
+      .sort(() => Math.random() - 0.5);
+    setCards(shuffled);
     setFlippedCards([]);
     setMatchedCards([]);
   }
@@ -32,7 +43,7 @@ function MemoryCardGame() {
 
     if (newFlippedCards.length === 2) {
       const [first, second] = newFlippedCards.map(id => cards.find(c => c.id === id));
-      if (first.value === second.value) {
+      if (first.color === second.color) {
         setMatchedCards([...matchedCards, first.id, second.id]);
       }
       setTimeout(() => setFlippedCards([]), 1000);
@@ -56,7 +67,7 @@ function MemoryCardGame() {
   return React.createElement(
     Layout,
     { style: { minHeight: '100vh', background } },
-    React.createElement(Header, { style: { color: 'white', textAlign: 'center' } }, 'Jeu de Memory'),
+    React.createElement(Header, { style: { color: 'white', textAlign: 'center' } }, 'Jeu de Memory (16 couleurs)'),
 
     React.createElement(
       Content,
@@ -101,11 +112,16 @@ function MemoryCardGame() {
                 hoverable: true,
                 style: {
                   textAlign: 'center',
-                  background: flippedCards.includes(card.id) || matchedCards.includes(card.id) ? 'white' : '#8c8c8c',
-                  color: flippedCards.includes(card.id) || matchedCards.includes(card.id) ? 'black' : 'transparent'
+                  background: flippedCards.includes(card.id) || matchedCards.includes(card.id) ? card.color : '#8c8c8c',
+                  height: '100px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'transparent', // Texte invisible
+                  border: '1px solid #d9d9d9',
                 }
               },
-              flippedCards.includes(card.id) || matchedCards.includes(card.id) ? card.value : ''
+              flippedCards.includes(card.id) || matchedCards.includes(card.id) ? '' : '' // Pas de contenu
             )
           )
         )
